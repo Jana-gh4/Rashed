@@ -112,18 +112,32 @@ export default function Assistant() {
 
   const sendMessage = async (text?: string) => {
     const content = text ?? input.trim();
-    if (!content || !activeConvId || sending) return;
+    if (!content || sending) return;
     setInput('');
     setSending(true);
 
-    const userMsg: Message = { id: Date.now(), conversationId: activeConvId, role: 'user', content, createdAt: new Date().toISOString() };
+    // Auto-create conversation if none exists
+    let convId = activeConvId;
+    if (!convId) {
+      try {
+        const conv = await api.assistant.createConversation();
+        qc.invalidateQueries({ queryKey: ['conversations'] });
+        setActiveConvId(conv.id);
+        convId = conv.id;
+      } catch {
+        setSending(false);
+        return;
+      }
+    }
+
+    const userMsg: Message = { id: Date.now(), conversationId: convId, role: 'user', content, createdAt: new Date().toISOString() };
     setLocalMessages((prev) => [...prev, userMsg]);
 
     try {
-      const { assistantMessage } = await api.assistant.sendMessage(activeConvId, content, lang);
+      const { assistantMessage } = await api.assistant.sendMessage(convId, content, lang);
       setLocalMessages((prev) => [...prev.filter((m) => m.id !== userMsg.id), userMsg, assistantMessage]);
     } catch {
-      const errMsg: Message = { id: Date.now() + 1, conversationId: activeConvId, role: 'assistant', content: t('assistant_error'), createdAt: new Date().toISOString() };
+      const errMsg: Message = { id: Date.now() + 1, conversationId: convId, role: 'assistant', content: t('assistant_error'), createdAt: new Date().toISOString() };
       setLocalMessages((prev) => [...prev, errMsg]);
     } finally {
       setSending(false);
@@ -220,29 +234,27 @@ export default function Assistant() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Chat input — sits above the bottom nav */}
-      {activeConvId && (
-        <div className="border-t border-gray-100 bg-white px-4 py-3 flex-shrink-0" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}>
-          <div className="flex items-center gap-2">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-              placeholder={t('assistant_placeholder')}
-              disabled={sending}
-              className="flex-1 px-4 py-3 bg-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
-              dir={isRtl ? 'rtl' : 'ltr'}
-            />
-            <button
-              onClick={() => sendMessage()}
-              disabled={!input.trim() || sending}
-              className="w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center disabled:opacity-40 hover:bg-blue-700 transition-colors flex-shrink-0"
-            >
-              <Send size={18} className="text-white" />
-            </button>
-          </div>
+      {/* Chat input — always visible, auto-creates conversation on first send */}
+      <div className="border-t border-gray-100 bg-white px-4 py-3 flex-shrink-0" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}>
+        <div className="flex items-center gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+            placeholder={t('assistant_placeholder')}
+            disabled={sending}
+            className="flex-1 px-4 py-3 bg-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+            dir={isRtl ? 'rtl' : 'ltr'}
+          />
+          <button
+            onClick={() => sendMessage()}
+            disabled={!input.trim() || sending}
+            className="w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center disabled:opacity-40 hover:bg-blue-700 transition-colors flex-shrink-0"
+          >
+            <Send size={18} className="text-white" />
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Bottom nav */}
       <BottomNav />
