@@ -1,12 +1,68 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Send, Bot, User, Plus, Loader2, MessageCircle } from 'lucide-react';
-import { PageShell } from '@/components/PageShell';
+import { BottomNav } from '@/components/BottomNav';
 import { useI18n } from '@/lib/i18n';
-import { api, type Message, type Conversation } from '@/lib/api';
+import { api, type Message } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 
+// ── Markdown renderer ────────────────────────────────────────────────────────
+function renderInline(text: string): React.ReactNode[] {
+  // Split on **bold** and *italic* patterns
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+      return <em key={i}>{part.slice(1, -1)}</em>;
+    }
+    return part;
+  });
+}
+
+function MarkdownMessage({ content, isUser }: { content: string; isUser: boolean }) {
+  const lines = content.split('\n');
+  const nodes: React.ReactNode[] = [];
+  let bulletBuffer: string[] = [];
+
+  const flushBullets = () => {
+    if (bulletBuffer.length === 0) return;
+    nodes.push(
+      <ul key={`ul-${nodes.length}`} className="list-disc list-inside space-y-0.5 my-1">
+        {bulletBuffer.map((b, i) => (
+          <li key={i} className="text-sm leading-relaxed">{renderInline(b)}</li>
+        ))}
+      </ul>
+    );
+    bulletBuffer = [];
+  };
+
+  lines.forEach((line, i) => {
+    const bulletMatch = line.match(/^[\*\-•] (.+)/);
+    if (bulletMatch) {
+      bulletBuffer.push(bulletMatch[1]);
+    } else {
+      flushBullets();
+      if (line.trim() === '') {
+        // empty line — spacer
+        nodes.push(<div key={`sp-${i}`} className="h-1" />);
+      } else {
+        nodes.push(
+          <p key={`p-${i}`} className="text-sm leading-relaxed">{renderInline(line)}</p>
+        );
+      }
+    }
+  });
+  flushBullets();
+
+  return <div className={`space-y-0.5 ${isUser ? 'text-white' : 'text-gray-800'}`}>{nodes}</div>;
+}
+
+// ── Main page ────────────────────────────────────────────────────────────────
 export default function Assistant() {
   const { t, isRtl, lang } = useI18n();
+  const { user } = useAuth();
   const qc = useQueryClient();
 
   const [activeConvId, setActiveConvId] = useState<number | null>(null);
@@ -77,7 +133,7 @@ export default function Assistant() {
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto bg-white" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-safe pt-4 pb-3 border-b border-gray-100 bg-white">
+      <div className="flex items-center justify-between px-4 pt-safe pt-4 pb-3 border-b border-gray-100 bg-white flex-shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center">
             <Bot size={18} className="text-blue-600" />
@@ -96,8 +152,8 @@ export default function Assistant() {
         </button>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-20">
+      {/* Messages — scrollable, leaves room for input + nav */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4" style={{ paddingBottom: '8rem' }}>
         {!activeConvId ? (
           <div className="flex flex-col items-center justify-center h-full gap-6 text-center py-12">
             <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center">
@@ -144,8 +200,8 @@ export default function Assistant() {
               <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center ${msg.role === 'user' ? 'bg-blue-600' : 'bg-gray-100'}`}>
                 {msg.role === 'user' ? <User size={14} className="text-white" /> : <Bot size={14} className="text-gray-600" />}
               </div>
-              <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-gray-100 text-gray-800 rounded-tl-sm'}`}>
-                {msg.content}
+              <div className={`max-w-[80%] px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-gray-100 text-gray-800 rounded-tl-sm'}`}>
+                <MarkdownMessage content={msg.content} isUser={msg.role === 'user'} />
               </div>
             </div>
           ))
@@ -164,9 +220,9 @@ export default function Assistant() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
+      {/* Chat input — sits above the bottom nav */}
       {activeConvId && (
-        <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 px-4 py-3 pb-safe">
+        <div className="border-t border-gray-100 bg-white px-4 py-3 flex-shrink-0" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}>
           <div className="flex items-center gap-2">
             <input
               value={input}
@@ -187,6 +243,9 @@ export default function Assistant() {
           </div>
         </div>
       )}
+
+      {/* Bottom nav */}
+      <BottomNav />
     </div>
   );
 }

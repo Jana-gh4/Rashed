@@ -21,7 +21,7 @@ async function assertMeterOwnership(meterId: number, householdId: number) {
 router.get("/", async (req, res) => {
   try {
     const hhId = await getUserHouseholdId(req.session.userId!);
-    if (!hhId) { res.status(404).json({ error: "No household found" }); return; }
+    if (!hhId) { res.json([]); return; }
 
     const result = await db.select().from(meters).where(eq(meters.householdId, hhId));
 

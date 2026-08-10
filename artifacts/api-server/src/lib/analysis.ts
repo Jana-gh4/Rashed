@@ -70,7 +70,7 @@ export async function analyzeBillWithGemini(
   let smartSummary = "";
   let whySummary = "";
   let possibleCauses: { reason: string; confidence: number }[] = [];
-  let geminiRecs: { titleAr: string; titleEn: string; descAr: string; descEn: string; category: string; priority: number }[] = [];
+  let geminiRecs: { title_ar: string; title_en: string; description_ar: string; description_en: string; category: string; priority: number }[] = [];
 
   try {
     const langInstr = language === "ar"
@@ -211,13 +211,14 @@ Return ONLY valid JSON with this shape:
 
   // ── 9. Persist recommendations ────────────────────────────────────────────
   for (const r of geminiRecs.slice(0, 5)) {
+    if (!r.title_ar || !r.title_en) continue; // skip malformed entries
     await db.insert(recommendations).values({
       householdId,
       analysisId: analysis.id,
-      titleAr: r.titleAr,
-      titleEn: r.titleEn,
-      descriptionAr: r.descAr,
-      descriptionEn: r.descEn,
+      titleAr: r.title_ar,
+      titleEn: r.title_en,
+      descriptionAr: r.description_ar ?? "",
+      descriptionEn: r.description_en ?? "",
       priority: r.priority ?? 1,
       category: r.category ?? "general",
       dataClassification: isDemo ? "synthetic_demo_data" : "ai_inferred_data",

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Sliders, TrendingDown, DollarSign, Info, Loader2 } from 'lucide-react';
+import { Sliders, Info, Loader2 } from 'lucide-react';
 import { PageShell } from '@/components/PageShell';
 import { DemoBadge } from '@/components/DemoBadge';
 import { useI18n } from '@/lib/i18n';
@@ -53,6 +53,11 @@ export default function WhatIf() {
             {simulate.isPending ? <Loader2 size={18} className="animate-spin" /> : <Sliders size={18} />}
             {isRtl ? 'تشغيل المحاكاة' : 'Run Simulation'}
           </button>
+          {simulate.isError && (
+            <p className="text-xs text-red-500 text-center">
+              {isRtl ? 'خطأ في تشغيل المحاكاة. تأكد من وجود بيانات استهلاك.' : 'Simulation failed. Make sure consumption data exists.'}
+            </p>
+          )}
         </div>
 
         {/* Before / After comparison */}
@@ -65,7 +70,7 @@ export default function WhatIf() {
                 <p className="text-xs text-gray-500">{t('whatif_consumption')}</p>
                 <p className="text-xl font-bold text-gray-900">{current.toFixed(1)} <span className="text-sm font-normal">{t('home_unit_m3')}</span></p>
               </div>
-              {result && (
+              {result && result.currentCostSar != null && (
                 <div className="mt-2">
                   <p className="text-xs text-gray-500">{t('whatif_cost')} *</p>
                   <p className="text-lg font-bold text-red-700">{result.currentCostSar.toFixed(1)} <span className="text-xs font-normal">{t('savings_sar')}</span></p>
@@ -80,7 +85,7 @@ export default function WhatIf() {
                 <p className="text-xs text-gray-500">{t('whatif_consumption')}</p>
                 <p className="text-xl font-bold text-gray-900">{target?.toFixed(1) ?? '—'} <span className="text-sm font-normal">{t('home_unit_m3')}</span></p>
               </div>
-              {result && (
+              {result && result.targetCostSar != null && (
                 <div className="mt-2">
                   <p className="text-xs text-gray-500">{t('whatif_cost')} *</p>
                   <p className="text-lg font-bold text-green-700">{result.targetCostSar.toFixed(1)} <span className="text-xs font-normal">{t('savings_sar')}</span></p>

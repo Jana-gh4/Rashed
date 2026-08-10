@@ -124,11 +124,17 @@ export const api = {
 
   savings: {
     list: () => request<SavingsEstimate[]>('/savings'),
-    whatIf: (reductionPercent: number) =>
+    whatIf: (params: { reductionPercent: number }) =>
       request<WhatIfResult>('/savings/what-if', {
         method: 'POST',
-        body: JSON.stringify({ reductionPercent }),
+        body: JSON.stringify(params),
       }),
+  },
+
+  plan: {
+    getRecommendations: () => request<Recommendation[]>('/plan/recommendations'),
+    generate: (params: { goalPercent: number; language?: 'ar' | 'en' }) =>
+      request<GeneratedPlan>('/plan/generate', { method: 'POST', body: JSON.stringify(params) }),
   },
 };
 
@@ -165,9 +171,11 @@ export interface Meter {
   isActive: boolean;
   dataClassification: string;
   createdAt: string;
+  lastReadingValue: number | null;
+  lastReadingDate: string | null;
 }
 
-export type MeterInput = Omit<Meter, 'id' | 'householdId' | 'createdAt'>;
+export type MeterInput = Omit<Meter, 'id' | 'householdId' | 'createdAt' | 'lastReadingValue' | 'lastReadingDate'>;
 
 export interface Bill {
   id: number;
@@ -198,10 +206,14 @@ export interface Analysis {
   previousConsumptionM3: number | null;
   changePercentage: number | null;
   statusVsBaseline: string | null;
+  baselineMinM3: number | null;
+  baselineMaxM3: number | null;
+  baselineBasis: string | null;
   anomalyDetected: boolean;
   smartAnalysisSummary: string | null;
   whyIncreasedSummary: string | null;
   possibleCauses: Array<{ reason: string; confidence: number }>;
+  dataClassification: string;
   createdAt: string;
 }
 
@@ -220,6 +232,7 @@ export interface Forecast {
   projectedMinM3: number | null;
   projectedMaxM3: number | null;
   confidenceNote: string | null;
+  dataClassification: string;
 }
 
 export interface DashboardSummary {
@@ -244,6 +257,7 @@ export interface ConsumptionRecord {
   periodEnd: string;
   consumptionM3: number;
   billingPeriodDays: number | null;
+  dataClassification: string;
 }
 
 export interface SavingsEstimate {
@@ -254,16 +268,59 @@ export interface SavingsEstimate {
   savingM3: number;
   reductionPercent: number;
   tariffVersion: string;
+  dataClassification: string;
 }
 
 export interface WhatIfResult {
   currentM3: number;
   targetM3: number;
-  currentCostSar: number;
-  targetCostSar: number;
+  currentCostSar: number | null;
+  targetCostSar: number | null;
   savingM3: number;
   savingSar: number;
   reductionPercent: number;
+  annualSavingM3: number;
+  annualSavingSar: number;
+}
+
+export interface Recommendation {
+  id: number;
+  householdId: number;
+  analysisId: number | null;
+  titleAr: string;
+  titleEn: string;
+  descriptionAr: string | null;
+  descriptionEn: string | null;
+  estimatedWaterSavingM3: number | null;
+  estimatedCostSavingSar: number | null;
+  priority: number;
+  category: string;
+  isCompleted: boolean;
+  dataClassification: string;
+  createdAt: string;
+}
+
+export interface PlanAction {
+  id: number;
+  icon: string;
+  title_ar: string;
+  title_en: string;
+  description_ar: string;
+  description_en: string;
+  saving_m3: number;
+  category: string;
+  priority: number;
+}
+
+export interface GeneratedPlan {
+  goalPercent: number;
+  targetM3: number | null;
+  savings: { currentCostSar: number; targetCostSar: number; savingSar: number; savingM3: number; reductionPercent: number } | null;
+  actions: PlanAction[];
+  summaryAr: string;
+  summaryEn: string;
+  tariffVersion: string | null;
+  verificationStatus: string | null;
 }
 
 export interface Conversation {
