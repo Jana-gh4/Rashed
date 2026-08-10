@@ -1,4 +1,6 @@
 - [API route double-prefix bug](api-route-prefix.md) — auth router had `/auth/login` paths but was also mounted at `/auth`, causing 404s on all auth endpoints.
+- [connect-pg-simple + esbuild](connect-pg-simple-esbuild.md) — must be externalized in build.mjs AND user_sessions table must be created manually; householdId missing from users schema caused universal 401s.
+- [users schema missing householdId](users-schema-householdid.md) — users table initially had no household_id column; dashboard always returned needsHousehold:true until column was added and schema pushed.
 - [esbuild externals and @google/genai](esbuild-google-genai.md) — `@google/*` was in the external list; must be removed AND package added as direct api-server dep to bundle it.
 - [Seed script location](seed-script.md) — seed must live in `lib/db/src/seed.ts` with tsx in devDeps; running from workspace root or scripts package fails on drizzle-orm resolution.
 - [Zod v4 + Orval codegen](zod-v4-orval.md) — Orval 8.23 generates Zod v4 APIs; use `^4.x` in catalog; change OpenAPI `integer` → `number` to avoid `z.int()`.

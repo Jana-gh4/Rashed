@@ -2,6 +2,7 @@ import {
   pgTable,
   serial,
   text,
+  integer,
   boolean,
   timestamp,
   pgEnum,
@@ -19,6 +20,7 @@ export const users = pgTable("users", {
   preferredLanguage: languageEnum("preferred_language")
     .notNull()
     .default("ar"),
+  householdId: integer("household_id"),
   isDemoMode: boolean("is_demo_mode").notNull().default(false),
   notificationEmail: boolean("notification_email").notNull().default(true),
   notificationPush: boolean("notification_push").notNull().default(true),
