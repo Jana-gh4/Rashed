@@ -14,12 +14,11 @@ async function getUserHousehold(userId: number) {
   return hh ?? null;
 }
 
-// GET /api/household
+// GET /api/household — returns null (not 404) when user has no household yet
 router.get("/", async (req, res) => {
   try {
     const hh = await getUserHousehold(req.session.userId!);
-    if (!hh) { res.status(404).json({ error: "No household found" }); return; }
-    res.json(hh);
+    res.json(hh ?? null);
   } catch { res.status(500).json({ error: "Failed to fetch household" }); }
 });
 

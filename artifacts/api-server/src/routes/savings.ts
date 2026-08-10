@@ -13,11 +13,11 @@ async function getUserHouseholdId(userId: number) {
   return u?.householdId ?? null;
 }
 
-// GET /api/savings
+// GET /api/savings — returns [] when user has no household yet
 router.get("/", async (req, res) => {
   try {
     const hhId = await getUserHouseholdId(req.session.userId!);
-    if (!hhId) { res.status(404).json({ error: "No household" }); return; }
+    if (!hhId) { res.json([]); return; }
     const estimates = await db.select().from(savingsEstimates).where(eq(savingsEstimates.householdId, hhId)).orderBy(desc(savingsEstimates.createdAt)).limit(10);
     res.json(estimates);
   } catch { res.status(500).json({ error: "Failed to fetch savings" }); }

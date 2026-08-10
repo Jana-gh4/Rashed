@@ -69,11 +69,15 @@ export const api = {
       request<AuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
     logout: () => request<{ success: boolean }>('/auth/logout', { method: 'POST' }),
     me: () => request<UserData>('/auth/me'),
+    updateMe: (data: { name?: string; preferredLanguage?: 'ar' | 'en' }) =>
+      request<UserData>('/auth/me', { method: 'PATCH', body: JSON.stringify(data) }),
   },
 
   household: {
     get: () => request<Household>('/household'),
     update: (data: Partial<HouseholdInput>) =>
+      request<Household>('/household', { method: 'PUT', body: JSON.stringify(data) }),
+    upsert: (data: Partial<HouseholdInput>) =>
       request<Household>('/household', { method: 'PUT', body: JSON.stringify(data) }),
     getMembers: () => request<HouseholdMember[]>('/household/members'),
     addMember: (data: { name: string; role?: string }) =>
@@ -100,7 +104,9 @@ export const api = {
 
   dashboard: {
     summary: () => request<DashboardSummary>('/dashboard'),
+    get: () => request<DashboardSummary>('/dashboard'),                    // alias used by Home.tsx
     latestAnalysis: () => request<Analysis>('/dashboard/analysis/latest'),
+    getLatestAnalysis: () => request<Analysis>('/dashboard/analysis/latest'), // alias
   },
 
   assistant: {
