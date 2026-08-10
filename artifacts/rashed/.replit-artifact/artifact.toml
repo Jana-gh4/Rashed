@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "RASHED — Water Intelligence"
+description = "RASHED is an AI-powered household water consumption intelligence and conservation assistant for Saudi households. It turns photographed water bills or meter images into a full intelligence loop: Gemini multimodal extraction → consumption analysis → anomaly/leak detection → forecast → personalized conservation plan → financial savings → AI assistant with function calling. Mobile-first (~390px), bilingual Arabic/English with full RTL/LTR support."
+version = "1.0.0"
+id = "artifacts/rashed"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25696
+
+[services.development]
+run = "pnpm --filter @workspace/rashed run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/rashed", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/rashed/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25696"
+BASE_PATH = "/"

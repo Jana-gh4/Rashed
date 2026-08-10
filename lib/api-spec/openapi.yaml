@@ -3,20 +3,51 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: RASHED — AI Water Intelligence API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication and user management
+  - name: household
+    description: Household and family profile
+  - name: meters
+    description: Meters and readings
+  - name: bills
+    description: Bill uploads and records
+  - name: analysis
+    description: AI consumption analysis
+  - name: consumption
+    description: Consumption history and trends
+  - name: alerts
+    description: Anomaly and leak alerts
+  - name: forecast
+    description: Consumption forecasting
+  - name: recommendations
+    description: Conservation recommendations and plans
+  - name: savings
+    description: Financial savings estimates
+  - name: simulation
+    description: What-if simulations
+  - name: dashboard
+    description: Dashboard summary
+  - name: reference
+    description: Data sources and tariff configuration
+  - name: demo
+    description: Demo mode control
+  - name: assistant
+    description: RASHED AI Assistant
+  - name: gemini
+    description: Gemini AI operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +55,924 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── AUTH ───
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateMe
+      tags: [auth]
+      summary: Update current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+
+  # ─── HOUSEHOLD ───
+  /household:
+    get:
+      operationId: getHousehold
+      tags: [household]
+      summary: Get household profile
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Household"
+        "404":
+          description: No household yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: upsertHousehold
+      tags: [household]
+      summary: Create or update household
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HouseholdInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Household"
+
+  /household/members:
+    get:
+      operationId: listHouseholdMembers
+      tags: [household]
+      summary: List household members
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HouseholdMember"
+    post:
+      operationId: addHouseholdMember
+      tags: [household]
+      summary: Add a household member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HouseholdMemberInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HouseholdMember"
+
+  /household/members/{id}:
+    delete:
+      operationId: removeHouseholdMember
+      tags: [household]
+      summary: Remove a household member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── METERS ───
+  /meters:
+    get:
+      operationId: listMeters
+      tags: [meters]
+      summary: List meters
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Meter"
+    post:
+      operationId: createMeter
+      tags: [meters]
+      summary: Create a meter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeterInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meter"
+
+  /meters/{id}:
+    get:
+      operationId: getMeter
+      tags: [meters]
+      summary: Get a meter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meter"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateMeter
+      tags: [meters]
+      summary: Update a meter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeterUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meter"
+    delete:
+      operationId: deleteMeter
+      tags: [meters]
+      summary: Delete a meter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /meters/{id}/readings:
+    get:
+      operationId: listMeterReadings
+      tags: [meters]
+      summary: List readings for a meter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MeterReading"
+    post:
+      operationId: addMeterReading
+      tags: [meters]
+      summary: Add a reading for a meter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeterReadingInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeterReading"
+
+  # ─── BILLS ───
+  /bills:
+    get:
+      operationId: listBills
+      tags: [bills]
+      summary: List bills
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BillSummary"
+
+  /bills/{id}:
+    get:
+      operationId: getBill
+      tags: [bills]
+      summary: Get a bill with analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── DASHBOARD ───
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get dashboard summary
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  # ─── ANALYSIS ───
+  /analysis/latest:
+    get:
+      operationId: getLatestAnalysis
+      tags: [analysis]
+      summary: Get the latest consumption analysis
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsumptionAnalysis"
+        "404":
+          description: No analysis yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /analysis/{id}:
+    get:
+      operationId: getAnalysis
+      tags: [analysis]
+      summary: Get a specific analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsumptionAnalysis"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── CONSUMPTION ───
+  /consumption/history:
+    get:
+      operationId: getConsumptionHistory
+      tags: [consumption]
+      summary: Get consumption history
+      parameters:
+        - name: months
+          in: query
+          schema:
+            type: number
+            default: 6
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConsumptionRecord"
+
+  /consumption/baseline:
+    get:
+      operationId: getBaseline
+      tags: [consumption]
+      summary: Get household-specific expected baseline
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsumptionBaseline"
+
+  # ─── ALERTS ───
+  /alerts:
+    get:
+      operationId: listAlerts
+      tags: [alerts]
+      summary: List all alerts
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+
+  /alerts/latest-leak:
+    get:
+      operationId: getLatestLeakAlert
+      tags: [alerts]
+      summary: Get the latest leak alert
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeakAlert"
+        "404":
+          description: No leak alert found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── FORECAST ───
+  /forecast:
+    get:
+      operationId: getForecast
+      tags: [forecast]
+      summary: Get current month consumption forecast
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forecast"
+        "404":
+          description: Not enough data for forecast
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── RECOMMENDATIONS ───
+  /recommendations:
+    get:
+      operationId: listRecommendations
+      tags: [recommendations]
+      summary: List recommendations
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Recommendation"
+
+  /conservation-plan:
+    get:
+      operationId: getConservationPlan
+      tags: [recommendations]
+      summary: Get active conservation plan
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConservationPlan"
+        "404":
+          description: No active plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createConservationPlan
+      tags: [recommendations]
+      summary: Create or regenerate conservation plan
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConservationPlan"
+
+  # ─── SAVINGS ───
+  /savings:
+    get:
+      operationId: getSavingsEstimate
+      tags: [savings]
+      summary: Get savings estimate for current plan
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavingsEstimate"
+        "404":
+          description: Not enough data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── SIMULATION ───
+  /simulation/what-if:
+    post:
+      operationId: runWhatIfSimulation
+      tags: [simulation]
+      summary: Run a what-if simulation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WhatIfInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WhatIfResult"
+
+  # ─── REFERENCE DATA ───
+  /data-sources:
+    get:
+      operationId: listDataSources
+      tags: [reference]
+      summary: List verified data sources
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DataSource"
+
+  /tariff-config:
+    get:
+      operationId: getTariffConfig
+      tags: [reference]
+      summary: Get current tariff configuration
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TariffConfig"
+
+  # ─── DEMO MODE ───
+  /demo/activate:
+    post:
+      operationId: activateDemo
+      tags: [demo]
+      summary: Activate demo mode with synthetic data
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoStatus"
+
+  /demo/status:
+    get:
+      operationId: getDemoStatus
+      tags: [demo]
+      summary: Get demo mode status
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoStatus"
+
+  # ─── AI ASSISTANT ───
+  /assistant/conversations:
+    get:
+      operationId: listAssistantConversations
+      tags: [assistant]
+      summary: List AI assistant conversations
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssistantConversation"
+    post:
+      operationId: createAssistantConversation
+      tags: [assistant]
+      summary: Create a new assistant conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssistantConversationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantConversation"
+
+  /assistant/conversations/{id}:
+    get:
+      operationId: getAssistantConversation
+      tags: [assistant]
+      summary: Get conversation with messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantConversationDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteAssistantConversation
+      tags: [assistant]
+      summary: Delete a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /assistant/conversations/{id}/messages:
+    get:
+      operationId: listAssistantMessages
+      tags: [assistant]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssistantMessage"
+    post:
+      operationId: sendAssistantMessage
+      tags: [assistant]
+      summary: Send a message to the assistant (SSE stream with function calling)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssistantMessageInput"
+      responses:
+        "200":
+          description: SSE stream of assistant response
+          content:
+            text/event-stream: {}
+
+  # ─── GEMINI (from skill) ───
+  /gemini/conversations:
+    get:
+      operationId: listGeminiConversations
+      tags: [gemini]
+      summary: List all conversations
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeminiConversation"
+    post:
+      operationId: createGeminiConversation
+      tags: [gemini]
+      summary: Create a new conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeminiConversationInput"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiConversation"
+
+  /gemini/conversations/{id}:
+    get:
+      operationId: getGeminiConversation
+      tags: [gemini]
+      summary: Get conversation with messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiConversationWithMessages"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiError"
+    delete:
+      operationId: deleteGeminiConversation
+      tags: [gemini]
+      summary: Delete a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiError"
+
+  /gemini/conversations/{id}/messages:
+    get:
+      operationId: listGeminiMessages
+      tags: [gemini]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeminiMessage"
+    post:
+      operationId: sendGeminiMessage
+      tags: [gemini]
+      summary: Send a message and receive an AI response (SSE stream)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeminiMessageInput"
+      responses:
+        "200":
+          description: SSE stream of assistant response chunks
+          content:
+            text/event-stream: {}
+
+  /gemini/generate-image:
+    post:
+      operationId: generateGeminiImage
+      tags: [gemini]
+      summary: Generate an image from a text prompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeminiImageInput"
+      responses:
+        "200":
+          description: Generated image data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiImageOutput"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +983,1072 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+
+    # ─── AUTH ───
+    RegisterInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        preferredLanguage:
+          type: string
+          enum: [ar, en]
+          default: ar
+      required:
+        - name
+        - email
+        - password
+
+    LoginInput:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        email:
+          type: string
+        preferredLanguage:
+          type: string
+        householdId:
+          type: ["number", "null"]
+        isDemoMode:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - preferredLanguage
+        - isDemoMode
+        - createdAt
+
+    UserUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        preferredLanguage:
+          type: string
+          enum: [ar, en]
+
+    # ─── HOUSEHOLD ───
+    Household:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        memberCount:
+          type: number
+        propertyType:
+          type: string
+          enum: [villa, apartment, townhouse, other]
+        bathroomCount:
+          type: number
+        hasGarden:
+          type: boolean
+        hasPool:
+          type: boolean
+        propertySizeM2:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - memberCount
+        - propertyType
+        - bathroomCount
+        - hasGarden
+        - hasPool
+        - createdAt
+
+    HouseholdInput:
+      type: object
+      properties:
+        name:
+          type: string
+        memberCount:
+          type: number
+          minimum: 1
+        propertyType:
+          type: string
+          enum: [villa, apartment, townhouse, other]
+        bathroomCount:
+          type: number
+          minimum: 1
+        hasGarden:
+          type: boolean
+        hasPool:
+          type: boolean
+        propertySizeM2:
+          type: ["number", "null"]
+      required:
+        - name
+        - memberCount
+        - propertyType
+        - bathroomCount
+        - hasGarden
+        - hasPool
+
+    HouseholdMember:
+      type: object
+      properties:
+        id:
+          type: number
+        householdId:
+          type: number
+        name:
+          type: string
+        role:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - householdId
+        - name
+        - role
+        - createdAt
+
+    HouseholdMemberInput:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+      required:
+        - name
+        - role
+
+    # ─── METERS ───
+    Meter:
+      type: object
+      properties:
+        id:
+          type: number
+        householdId:
+          type: number
+        meterId:
+          type: string
+        meterType:
+          type: string
+          enum: [main, garden, pool, other]
+        label:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        lastReadingValue:
+          type: ["number", "null"]
+        lastReadingDate:
+          type: ["string", "null"]
+        dataClassification:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - householdId
+        - meterId
+        - meterType
+        - isActive
+        - dataClassification
+        - createdAt
+
+    MeterInput:
+      type: object
+      properties:
+        meterId:
+          type: string
+        meterType:
+          type: string
+          enum: [main, garden, pool, other]
+        label:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+      required:
+        - meterId
+        - meterType
+
+    MeterUpdate:
+      type: object
+      properties:
+        label:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+
+    MeterReading:
+      type: object
+      properties:
+        id:
+          type: number
+        meterId:
+          type: number
+        readingValue:
+          type: number
+        readingDate:
+          type: string
+          format: date-time
+        flowLpm:
+          type: ["number", "null"]
+        dataClassification:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - meterId
+        - readingValue
+        - readingDate
+        - dataClassification
+        - createdAt
+
+    MeterReadingInput:
+      type: object
+      properties:
+        readingValue:
+          type: number
+        readingDate:
+          type: string
+          format: date-time
+        flowLpm:
+          type: ["number", "null"]
+      required:
+        - readingValue
+        - readingDate
+
+    # ─── BILLS ───
+    BillSummary:
+      type: object
+      properties:
+        id:
+          type: number
+        householdId:
+          type: number
+        currentConsumptionM3:
+          type: ["number", "null"]
+        previousConsumptionM3:
+          type: ["number", "null"]
+        changePercent:
+          type: ["number", "null"]
+        billingPeriodDays:
+          type: ["number", "null"]
+        billAmountSar:
+          type: ["number", "null"]
+        readingDate:
+          type: ["string", "null"]
+        dataClassification:
+          type: string
+        uploadedAt:
+          type: string
+          format: date-time
+        processingStatus:
+          type: string
+          enum: [pending, processing, completed, failed]
+      required:
+        - id
+        - householdId
+        - dataClassification
+        - uploadedAt
+        - processingStatus
+
+    BillDetail:
+      type: object
+      properties:
+        id:
+          type: number
+        householdId:
+          type: number
+        currentConsumptionM3:
+          type: ["number", "null"]
+        previousConsumptionM3:
+          type: ["number", "null"]
+        changePercent:
+          type: ["number", "null"]
+        billingPeriodDays:
+          type: ["number", "null"]
+        billAmountSar:
+          type: ["number", "null"]
+        readingDate:
+          type: ["string", "null"]
+        extractionConfidence:
+          type: ["number", "null"]
+        dataClassification:
+          type: string
+        uploadedAt:
+          type: string
+          format: date-time
+        processingStatus:
+          type: string
+          enum: [pending, processing, completed, failed]
+        analysis:
+          $ref: "#/components/schemas/ConsumptionAnalysis"
+      required:
+        - id
+        - householdId
+        - dataClassification
+        - uploadedAt
+        - processingStatus
+
+    # ─── DASHBOARD ───
+    DashboardSummary:
+      type: object
+      properties:
+        household:
+          $ref: "#/components/schemas/Household"
+        latestConsumptionM3:
+          type: ["number", "null"]
+        previousConsumptionM3:
+          type: ["number", "null"]
+        changePercent:
+          type: ["number", "null"]
+        consumptionStatus:
+          type: string
+          enum: [normal, above_expected, below_expected, critical, unknown]
+        hasLeakAlert:
+          type: boolean
+        leakRiskLevel:
+          type: ["string", "null"]
+        forecastEndOfMonthM3:
+          type: ["number", "null"]
+        activePlanGoalPercent:
+          type: ["number", "null"]
+        billCount:
+          type: number
+        lastUploadedAt:
+          type: ["string", "null"]
+        isDemoMode:
+          type: boolean
+      required:
+        - hasLeakAlert
+        - billCount
+        - isDemoMode
+        - consumptionStatus
+
+    # ─── ANALYSIS ───
+    ConsumptionAnalysis:
+      type: object
+      properties:
+        id:
+          type: number
+        billId:
+          type: number
+        currentConsumptionM3:
+          type: ["number", "null"]
+        previousConsumptionM3:
+          type: ["number", "null"]
+        changePercent:
+          type: ["number", "null"]
+        anomalyDetected:
+          type: boolean
+        anomalyExplanation:
+          type: ["string", "null"]
+        leakRiskLevel:
+          type: ["string", "null"]
+          enum: [low, medium, high, null]
+        leakRiskProbability:
+          type: ["number", "null"]
+        leakRiskReason:
+          type: ["string", "null"]
+        whyConsumptionIncreased:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConsumptionCause"
+        dataClassification:
+          type: string
+        tariffConfigVersion:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - billId
+        - anomalyDetected
+        - whyConsumptionIncreased
+        - dataClassification
+        - createdAt
+
+    ConsumptionCause:
+      type: object
+      properties:
+        cause:
+          type: string
+        confidence:
+          type: string
+          enum: [low, medium, high]
+        explanation:
+          type: string
+      required:
+        - cause
+        - confidence
+        - explanation
+
+    # ─── CONSUMPTION ───
+    ConsumptionRecord:
+      type: object
+      properties:
+        id:
+          type: number
+        householdId:
+          type: number
+        periodStart:
+          type: ["string", "null"]
+        periodEnd:
+          type: ["string", "null"]
+        consumptionM3:
+          type: number
+        estimatedCostSar:
+          type: ["number", "null"]
+        tariffConfigVersion:
+          type: ["string", "null"]
+        dataClassification:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - householdId
+        - consumptionM3
+        - dataClassification
+        - createdAt
+
+    ConsumptionBaseline:
+      type: object
+      properties:
+        householdBaselineMinM3:
+          type: number
+        householdBaselineMaxM3:
+          type: number
+        gastatReferenceM3:
+          type: number
+        memberCount:
+          type: number
+        basis:
+          type: string
+        dataClassification:
+          type: string
+      required:
+        - householdBaselineMinM3
+        - householdBaselineMaxM3
+        - gastatReferenceM3
+        - memberCount
+        - basis
+        - dataClassification
+
+    # ─── ALERTS ───
+    Alert:
+      type: object
+      properties:
+        id:
+          type: number
+        householdId:
+          type: number
+        alertType:
+          type: string
+          enum: [leak, anomaly, high_consumption, forecast_warning]
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        title:
+          type: string
+        description:
+          type: string
+        isRead:
+          type: boolean
+        dataClassification:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - householdId
+        - alertType
+        - severity
+        - title
+        - description
+        - isRead
+        - dataClassification
+        - createdAt
+
+    LeakAlert:
+      type: object
+      properties:
+        id:
+          type: number
+        householdId:
+          type: number
+        riskLevel:
+          type: string
+          enum: [low, medium, high]
+        riskProbability:
+          type: number
+        reason:
+          type: string
+        isDemo:
+          type: boolean
+        dataClassification:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - householdId
+        - riskLevel
+        - riskProbability
+        - reason
+        - isDemo
+        - dataClassification
+        - createdAt
+
+    # ─── FORECAST ───
+    Forecast:
+      type: object
+      properties:
+        id:
+          type: number
+        householdId:
+          type: number
+        currentConsumptionM3:
+          type: number
+        projectedEndOfMonthM3:
+          type: number
+        expectedRangeMinM3:
+          type: number
+        expectedRangeMaxM3:
+          type: number
+        daysElapsed:
+          type: number
+        daysInMonth:
+          type: number
+        confidenceLevel:
+          type: string
+          enum: [low, medium, high]
+        confidenceNote:
+          type: ["string", "null"]
+        estimatedCostSar:
+          type: ["number", "null"]
+        tariffConfigVersion:
+          type: ["string", "null"]
+        dataClassification:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - householdId
+        - currentConsumptionM3
+        - projectedEndOfMonthM3
+        - expectedRangeMinM3
+        - expectedRangeMaxM3
+        - daysElapsed
+        - daysInMonth
+        - confidenceLevel
+        - dataClassification
+        - createdAt
+
+    # ─── RECOMMENDATIONS ───
+    Recommendation:
+      type: object
+      properties:
+        id:
+          type: number
+        householdId:
+          type: number
+        analysisId:
+          type: ["number", "null"]
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [plumbing, behavior, garden, appliances, monitoring]
+        estimatedSavingsM3:
+          type: ["number", "null"]
+        estimatedSavingsSar:
+          type: ["number", "null"]
+        tariffConfigVersion:
+          type: ["string", "null"]
+        priority:
+          type: number
+        dataClassification:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - householdId
+        - title
+        - description
+        - category
+        - priority
+        - dataClassification
+        - createdAt
+
+    ConservationPlan:
+      type: object
+      properties:
+        id:
+          type: number
+        householdId:
+          type: number
+        goalReductionPercent:
+          type: number
+        goalReductionM3:
+          type: number
+        actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlanAction"
+        isActive:
+          type: boolean
+        dataClassification:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - householdId
+        - goalReductionPercent
+        - goalReductionM3
+        - actions
+        - isActive
+        - dataClassification
+        - createdAt
+
+    PlanAction:
+      type: object
+      properties:
+        id:
+          type: number
+        planId:
+          type: number
+        title:
+          type: string
+        description:
+          type: string
+        estimatedSavingsM3:
+          type: ["number", "null"]
+        estimatedSavingsSar:
+          type: ["number", "null"]
+        isCompleted:
+          type: boolean
+        tariffConfigVersion:
+          type: ["string", "null"]
+      required:
+        - id
+        - planId
+        - title
+        - description
+        - isCompleted
+
+    # ─── SAVINGS ───
+    SavingsEstimate:
+      type: object
+      properties:
+        householdId:
+          type: number
+        monthlyEstimatedSavingsM3:
+          type: number
+        monthlyEstimatedSavingsSar:
+          type: number
+        annualEstimatedSavingsM3:
+          type: number
+        annualEstimatedSavingsSar:
+          type: number
+        tariffConfigVersion:
+          type: string
+        verificationStatus:
+          type: string
+        dataClassification:
+          type: string
+      required:
+        - householdId
+        - monthlyEstimatedSavingsM3
+        - monthlyEstimatedSavingsSar
+        - annualEstimatedSavingsM3
+        - annualEstimatedSavingsSar
+        - tariffConfigVersion
+        - verificationStatus
+        - dataClassification
+
+    # ─── SIMULATION ───
+    WhatIfInput:
+      type: object
+      properties:
+        reductionPercent:
+          type: number
+          minimum: 1
+          maximum: 100
+      required:
+        - reductionPercent
+
+    WhatIfResult:
+      type: object
+      properties:
+        currentConsumptionM3:
+          type: number
+        projectedConsumptionM3:
+          type: number
+        deltaM3:
+          type: number
+        currentCostSar:
+          type: number
+        projectedCostSar:
+          type: number
+        deltaSar:
+          type: number
+        reductionPercent:
+          type: number
+        tariffConfigVersion:
+          type: string
+        verificationStatus:
+          type: string
+        dataClassification:
+          type: string
+      required:
+        - currentConsumptionM3
+        - projectedConsumptionM3
+        - deltaM3
+        - currentCostSar
+        - projectedCostSar
+        - deltaSar
+        - reductionPercent
+        - tariffConfigVersion
+        - verificationStatus
+        - dataClassification
+
+    # ─── REFERENCE ───
+    DataSource:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        organization:
+          type: string
+        verifiedFact:
+          type: string
+        howRashedUsesIt:
+          type: string
+        sourceUrl:
+          type: string
+        dataClassification:
+          type: string
+      required:
+        - id
+        - name
+        - organization
+        - verifiedFact
+        - howRashedUsesIt
+        - sourceUrl
+        - dataClassification
+
+    TariffConfig:
+      type: object
+      properties:
+        id:
+          type: number
+        version:
+          type: string
+        source:
+          type: string
+        effectiveDate:
+          type: ["string", "null"]
+        verificationStatus:
+          type: string
+        calculationMethod:
+          type: string
+        tiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TariffTier"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - version
+        - source
+        - verificationStatus
+        - calculationMethod
+        - tiers
+        - createdAt
+
+    TariffTier:
+      type: object
+      properties:
+        minM3:
+          type: number
+        maxM3:
+          type: ["number", "null"]
+        pricePerM3Sar:
+          type: number
+      required:
+        - minM3
+        - pricePerM3Sar
+
+    # ─── DEMO ───
+    DemoStatus:
+      type: object
+      properties:
+        isDemoMode:
+          type: boolean
+        demoScenario:
+          type: ["string", "null"]
+        message:
+          type: string
+      required:
+        - isDemoMode
+        - message
+
+    # ─── AI ASSISTANT ───
+    AssistantConversation:
+      type: object
+      properties:
+        id:
+          type: number
+        userId:
+          type: number
+        householdId:
+          type: ["number", "null"]
+        title:
+          type: string
+        language:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - title
+        - language
+        - createdAt
+
+    AssistantConversationInput:
+      type: object
+      properties:
+        title:
+          type: string
+        language:
+          type: string
+          enum: [ar, en]
+      required:
+        - title
+
+    AssistantConversationDetail:
+      type: object
+      properties:
+        id:
+          type: number
+        userId:
+          type: number
+        householdId:
+          type: ["number", "null"]
+        title:
+          type: string
+        language:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssistantMessage"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - title
+        - language
+        - messages
+        - createdAt
+
+    AssistantMessage:
+      type: object
+      properties:
+        id:
+          type: number
+        conversationId:
+          type: number
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        toolCallsSummary:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - createdAt
+
+    AssistantMessageInput:
+      type: object
+      properties:
+        content:
+          type: string
+        language:
+          type: string
+          enum: [ar, en]
+      required:
+        - content
+
+    # ─── GEMINI (from skill) ───
+    GeminiConversation:
+      type: object
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - createdAt
+
+    GeminiMessage:
+      type: object
+      properties:
+        id:
+          type: number
+        conversationId:
+          type: number
+        role:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - createdAt
+
+    GeminiConversationInput:
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
+
+    GeminiMessageInput:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+
+    GeminiConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeminiMessage"
+      required:
+        - id
+        - title
+        - createdAt
+        - messages
+
+    GeminiImageInput:
+      type: object
+      properties:
+        prompt:
+          type: string
+      required:
+        - prompt
+
+    GeminiImageOutput:
+      type: object
+      properties:
+        b64_json:
+          type: string
+        mimeType:
+          type: string
+      required:
+        - b64_json
+        - mimeType
+
+    GeminiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

@@ -1,0 +1,4 @@
+- [API route double-prefix bug](api-route-prefix.md) — auth router had `/auth/login` paths but was also mounted at `/auth`, causing 404s on all auth endpoints.
+- [esbuild externals and @google/genai](esbuild-google-genai.md) — `@google/*` was in the external list; must be removed AND package added as direct api-server dep to bundle it.
+- [Seed script location](seed-script.md) — seed must live in `lib/db/src/seed.ts` with tsx in devDeps; running from workspace root or scripts package fails on drizzle-orm resolution.
+- [Zod v4 + Orval codegen](zod-v4-orval.md) — Orval 8.23 generates Zod v4 APIs; use `^4.x` in catalog; change OpenAPI `integer` → `number` to avoid `z.int()`.
