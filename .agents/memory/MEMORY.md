@@ -2,5 +2,7 @@
 - [connect-pg-simple + esbuild](connect-pg-simple-esbuild.md) — must be externalized in build.mjs AND user_sessions table must be created manually; householdId missing from users schema caused universal 401s.
 - [users schema missing householdId](users-schema-householdid.md) — users table initially had no household_id column; dashboard always returned needsHousehold:true until column was added and schema pushed.
 - [esbuild externals and @google/genai](esbuild-google-genai.md) — `@google/*` was in the external list; must be removed AND package added as direct api-server dep to bundle it.
+- [Gemini apiVersion empty string](gemini-api-version.md) — GoogleGenAI SDK must set `httpOptions: { apiVersion: "", baseUrl: ... }` for Replit proxy; default v1beta prefix causes INVALID_ENDPOINT.
+- [JWT auth for Replit iframe](jwt-auth-iframe.md) — SameSite cookies blocked in Replit webview (cross-site iframe); use JWT Bearer tokens in localStorage instead.
 - [Seed script location](seed-script.md) — seed must live in `lib/db/src/seed.ts` with tsx in devDeps; running from workspace root or scripts package fails on drizzle-orm resolution.
 - [Zod v4 + Orval codegen](zod-v4-orval.md) — Orval 8.23 generates Zod v4 APIs; use `^4.x` in catalog; change OpenAPI `integer` → `number` to avoid `z.int()`.

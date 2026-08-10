@@ -5,6 +5,7 @@ import { users, households } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
+import { signToken } from "../lib/jwt";
 
 const router = Router();
 
@@ -15,6 +16,7 @@ function safeUser(u: typeof users.$inferSelect) {
     email: u.email,
     preferredLanguage: u.preferredLanguage,
     isDemoMode: u.isDemoMode,
+    householdId: u.householdId ?? null,
     createdAt: u.createdAt,
   };
 }
@@ -40,11 +42,12 @@ router.post("/register", async (req, res) => {
       name,
       email: email.toLowerCase(),
       passwordHash,
-      preferredLanguage: preferredLanguage as "ar" | "en",
+      preferredLanguage: preferredLanguage ?? "ar",
     }).returning();
 
+    const token = signToken({ userId: user.id });
     req.session.userId = user.id;
-    res.status(201).json(safeUser(user));
+    res.status(201).json({ user: safeUser(user), token });
   } catch (err) {
     res.status(500).json({ error: "Registration failed" });
   }
@@ -72,8 +75,9 @@ router.post("/login", async (req, res) => {
       return;
     }
 
+    const token = signToken({ userId: user.id });
     req.session.userId = user.id;
-    res.json(safeUser(user));
+    res.json({ user: safeUser(user), token });
   } catch (err) {
     res.status(500).json({ error: "Login failed" });
   }

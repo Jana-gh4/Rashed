@@ -61,14 +61,19 @@ export default function UploadPage() {
         clearInterval(interval);
         return prev;
       });
-    }, 600);
+    }, 700);
 
     try {
       const formData = new FormData();
+
       if (demo) {
-        // Use a 1×1 white pixel as placeholder for demo
-        const blob = new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xff, 0xd9])], { type: 'image/jpeg' });
-        formData.append('file', new File([blob], 'demo.jpg', { type: 'image/jpeg' }));
+        // Fetch the real NWC demo bill from public folder and send it to Gemini
+        const base = import.meta.env.BASE_URL ?? '/';
+        const demoUrl = `${base}demo-bill.png`.replace('//', '/');
+        const response = await fetch(demoUrl);
+        if (!response.ok) throw new Error('Could not load demo bill');
+        const blob = await response.blob();
+        formData.append('file', new File([blob], 'demo-nwc-bill.png', { type: 'image/png' }));
         formData.append('demo', 'true');
       } else {
         formData.append('file', file!);
@@ -146,15 +151,15 @@ export default function UploadPage() {
                   </div>
                   <span className="font-semibold text-gray-800">{t('upload_choose_gallery')}</span>
                 </button>
-                <input ref={fileRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => e.target.files?.[0] && pickFile(e.target.files[0])} />
 
-                {/* Previous bill */}
+                {/* Previous bill — same input, different label */}
                 <button onClick={() => fileRef.current?.click()} className="w-full flex items-center gap-4 p-5 bg-white rounded-2xl border border-gray-200 shadow-sm hover:border-blue-300 transition-colors">
                   <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
                     <FileText size={22} className="text-green-600" />
                   </div>
                   <span className="font-semibold text-gray-800">{t('upload_previous_bill')}</span>
                 </button>
+                <input ref={fileRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => e.target.files?.[0] && pickFile(e.target.files[0])} />
 
                 <div className="flex items-center gap-3 my-4">
                   <div className="flex-1 h-px bg-gray-200" />

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { api, type UserData } from './api';
+import { api, getToken, setToken, clearToken, type UserData } from './api';
 
 interface AuthContextValue {
   user: UserData | null;
@@ -17,10 +17,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const refresh = async () => {
+    // If there's no token, skip the /me call (saves a 401 round-trip)
+    if (!getToken()) {
+      setUser(null);
+      return;
+    }
     try {
       const me = await api.auth.me();
       setUser(me);
     } catch {
+      clearToken();
       setUser(null);
     }
   };
@@ -30,17 +36,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const u = await api.auth.login({ email, password });
+    const { user: u, token } = await api.auth.login({ email, password });
+    setToken(token);
     setUser(u);
   };
 
   const register = async (name: string, email: string, password: string, lang: 'ar' | 'en' = 'ar') => {
-    const u = await api.auth.register({ name, email, password, preferredLanguage: lang });
+    const { user: u, token } = await api.auth.register({ name, email, password, preferredLanguage: lang });
+    setToken(token);
     setUser(u);
   };
 
   const logout = async () => {
-    await api.auth.logout();
+    try { await api.auth.logout(); } catch {}
+    clearToken();
     setUser(null);
   };
 

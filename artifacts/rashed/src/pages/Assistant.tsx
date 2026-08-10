@@ -84,7 +84,7 @@ export default function Assistant() {
           </div>
           <div>
             <p className="font-semibold text-gray-900 text-sm">{t('assistant_title')}</p>
-            <p className="text-xs text-gray-400">رَشَد AI</p>
+            <p className="text-xs text-gray-400">رشّد AI</p>
           </div>
         </div>
         <button

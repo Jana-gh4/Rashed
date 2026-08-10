@@ -8,6 +8,10 @@ import { sessionMiddleware } from "./lib/session";
 
 const app: Express = express();
 
+// Trust the Replit proxy so Express sees X-Forwarded-Proto=https and marks
+// the connection as secure — required for SameSite=None; Secure cookies to be sent.
+app.set("trust proxy", 1);
+
 app.use(
   pinoHttp({
     logger,
@@ -30,8 +34,8 @@ app.use(
 
 app.use(
   cors({
-    origin: true,
-    credentials: true,
+    origin: true,       // reflect request Origin (required with credentials)
+    credentials: true,  // allow cookies in cross-origin requests
   }),
 );
 app.use(cookieParser());

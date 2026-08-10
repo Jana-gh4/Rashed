@@ -11,12 +11,13 @@ if (!process.env.AI_INTEGRATIONS_GEMINI_API_KEY) {
 
 export const gemini = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
-  httpOptions: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL
-    ? { baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL }
-    : undefined,
+  httpOptions: {
+    apiVersion: "",  // Replit AI proxy uses its own path; don't prepend /v1beta/
+    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
+  },
 });
 
-export const GEMINI_MODEL = "gemini-2.0-flash";
+export const GEMINI_MODEL = "gemini-2.5-flash";
 
 /** Mandatory prompt-injection defense text (Section 11.4) */
 export const UNTRUSTED_CONTENT_INSTRUCTION =

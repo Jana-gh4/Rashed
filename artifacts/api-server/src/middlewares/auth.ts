@@ -1,18 +1,35 @@
 import { Request, Response, NextFunction } from "express";
-import { db } from "@workspace/db";
-import { users } from "@workspace/db/schema";
-import { eq } from "drizzle-orm";
+import { verifyToken } from "../lib/jwt";
 
+/**
+ * requireAuth — checks Authorization: Bearer <JWT> header.
+ * Falls back to session cookie for backward compatibility.
+ * Sets req.session.userId so downstream handlers work unchanged.
+ */
 export async function requireAuth(
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  if (!req.session?.userId) {
-    res.status(401).json({ error: "Unauthorized" });
+  // 1. Try JWT from Authorization header (primary — works in all iframe/proxy contexts)
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+    const payload = verifyToken(token);
+    if (payload) {
+      req.session.userId = payload.userId;
+      next();
+      return;
+    }
+  }
+
+  // 2. Fall back to session cookie
+  if (req.session?.userId) {
+    next();
     return;
   }
-  next();
+
+  res.status(401).json({ error: "Unauthorized" });
 }
 
 export async function loadUser(
@@ -20,21 +37,14 @@ export async function loadUser(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  if (!req.session?.userId) {
-    next();
-    return;
-  }
-  try {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, req.session.userId))
-      .limit(1);
-    if (user) {
-      res.locals.user = user;
+  // Try JWT first
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+    const payload = verifyToken(token);
+    if (payload) {
+      req.session.userId = payload.userId;
     }
-  } catch (_err) {
-    // non-fatal — user just won't be loaded
   }
   next();
 }
