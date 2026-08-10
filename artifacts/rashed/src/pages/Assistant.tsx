@@ -235,7 +235,7 @@ export default function Assistant() {
       </div>
 
       {/* Chat input — always visible, auto-creates conversation on first send */}
-      <div className="border-t border-gray-100 bg-white px-4 py-3 flex-shrink-0" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}>
+      <div className="border-t border-gray-100 bg-white px-4 pt-3 pb-3 flex-shrink-0">
         <div className="flex items-center gap-2">
           <input
             value={input}
@@ -256,7 +256,10 @@ export default function Assistant() {
         </div>
       </div>
 
-      {/* Bottom nav */}
+      {/* Spacer so the fixed BottomNav doesn't cover the input */}
+      <div className="h-16 flex-shrink-0" />
+
+      {/* Bottom nav (fixed) */}
       <BottomNav />
     </div>
   );
